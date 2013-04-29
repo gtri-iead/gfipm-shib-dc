@@ -8,8 +8,8 @@ Build with mvn clean install.
 To use this data connector with Shibboleth, you add it to your Attribute-Resolver configuration.  First you must
 declare the namespace.  Include the following in the top of the config file:
 
-<AttributeResolver xmlns:gfipm-bae="urn:global:gfipm:1.1:bae-resolver"
-                   xsi:schemaLocation="urn:global:gfipm:1.1:bae-resolver classpath:/schema/gfipm-1.1-resolver.xsd">
+    <AttributeResolver xmlns:gfipm-bae="urn:global:gfipm:1.1:bae-resolver"
+                       xsi:schemaLocation="urn:global:gfipm:1.1:bae-resolver classpath:/schema/gfipm-1.1-resolver.xsd">
 
 
 Here is a somple test data data connector (files are read from 
