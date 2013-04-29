@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schema targetNamespace="urn:global:gfipm:1.1:bae-resolver" xmlns="http://www.w3.org/2001/XMLSchema"
+    xmlns:gfipmbae="urn:global:gfipm:1.1:bae-resolver" xmlns:dc="urn:mace:shibboleth:2.0:resolver:dc" 
+    xmlns:resolver="urn:mace:shibboleth:2.0:resolver" elementFormDefault="qualified">
+
+    <import namespace="urn:mace:shibboleth:2.0:resolver"
+        schemaLocation="classpath:/schema/shibboleth-2.0-attribute-resolver.xsd" />
+    <import namespace="urn:mace:shibboleth:2.0:resolver:dc"
+        schemaLocation="classpath:/schema/shibboleth-2.0-attribute-resolver-dc.xsd" />
+
+    <complexType name="Test">
+        <annotation>
+            <documentation>
+                A data connector that gets its information from a filename based on the authenticated username.
+            </documentation>
+        </annotation>
+        <complexContent>
+            <extension base="resolver:BaseDataConnectorType">
+                <attribute name="pathToAttributeFiles" type="string" use="required">
+                    <annotation>
+                        <documentation>
+                          This is the directory that is searched for files matching the authenticated username.  If a file is found
+                          that matches the authenticated username the contents of this file are returned as a list of attributes.
+                        </documentation>
+                    </annotation>
+                </attribute>
+                <attribute name="uidAttribute" type="string" use="required">
+                    <annotation>
+                        <documentation>
+                          This is the Shibboleth Attribute Definition id to be used for the file lookup.
+                        </documentation>
+                    </annotation>
+                </attribute>
+            </extension>
+        </complexContent>
+    </complexType>
+
+
+</schema>
