@@ -12,7 +12,7 @@ declare the namespace.  Include the following in the top of the config file:
                        xsi:schemaLocation="urn:global:gfipm:1.1:bae-resolver classpath:/schema/gfipm-1.1-resolver.xsd">
 
 
-Here is a somple test data data connector (files are read from 
+Here is a sample test data data connector (files are read from 
 /opt/shib-idp/users/${LocalId}.attr and then the contents of the 
 file are returned as attribute name/value pairs):
 
