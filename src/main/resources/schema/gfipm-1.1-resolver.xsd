@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <schema targetNamespace="urn:global:gfipm:1.1:bae-resolver" xmlns="http://www.w3.org/2001/XMLSchema"
-    xmlns:gfipmbae="urn:global:gfipm:1.1:bae-resolver" xmlns:dc="urn:mace:shibboleth:2.0:resolver:dc" 
-    xmlns:resolver="urn:mace:shibboleth:2.0:resolver" elementFormDefault="qualified">
+    xmlns:gfipmbae="urn:global:gfipm:1.1:bae-resolver" 
+    xmlns:dc="urn:mace:shibboleth:2.0:resolver:dc" 
+    xmlns:resolver="urn:mace:shibboleth:2.0:resolver" 
+    xmlns:sec="urn:mace:shibboleth:2.0:security" 
+    elementFormDefault="qualified">
 
     <import namespace="urn:mace:shibboleth:2.0:resolver"
         schemaLocation="classpath:/schema/shibboleth-2.0-attribute-resolver.xsd" />
     <import namespace="urn:mace:shibboleth:2.0:resolver:dc"
         schemaLocation="classpath:/schema/shibboleth-2.0-attribute-resolver-dc.xsd" />
+    <import namespace="urn:mace:shibboleth:2.0:security"
+        schemaLocation="classpath:/schema/shibboleth-2.0-security.xsd" />
+
 
     <complexType name="Test">
         <annotation>
@@ -35,6 +41,97 @@
             </extension>
         </complexContent>
     </complexType>
+
+    <complexType name="BAE">
+        <annotation>
+            <documentation>
+                A data connector that gets its information by engaging in a Backend Attribute Exchange Query.
+            </documentation>
+        </annotation>
+        <complexContent>
+            <extension base="resolver:BaseDataConnectorType">
+                <sequence>
+                    <element name="TrustCredential" type="sec:X509Credential" minOccurs="1">
+                        <annotation>
+                            <documentation>
+                                The X.509 trust information to use when connecting to the service. aka the certificate of the BAE service to query.
+                            </documentation>
+                        </annotation>
+                    </element>
+                    <element name="AuthenticationCredential" type="sec:X509Credential" minOccurs="1">
+                        <annotation>
+                            <documentation>
+                                The X.509 client authentication information to use when connecting to the service. aka my certificate and key.
+                            </documentation>
+                        </annotation>
+                    </element>
+                    <element name="Attribute" minOccurs="1" maxOccurs="unbounded">
+                        <annotation>
+                            <documentation>
+                                An attribute to query for from the BAE service.
+                            </documentation>
+                        </annotation>
+                        <complexType>
+                            <simpleContent>
+                                <extension base="string">
+                                    <attribute name="QueryName" type="string" use="required">
+                                        <annotation>
+                                            <documentation>
+                                                Attribute name sent in the query request.
+                                            </documentation>
+                                        </annotation>
+                                    </attribute>
+                                    <attribute name="ReturnName" type="string" use="required">
+                                        <annotation>
+                                            <documentation>
+                                                Attribute name to return.
+                                            </documentation>
+                                        </annotation>
+                                    </attribute>
+                                </extension>
+                            </simpleContent>
+                        </complexType>
+                    </element>
+                </sequence>
+                <attribute name="baeURL" type="string" use="required">
+                    <annotation>
+                        <documentation>
+                          This is URL of the BAE Service.
+                        </documentation>
+                    </annotation>
+                </attribute>
+                <attribute name="subjectId" type="string" use="required">
+                    <annotation>
+                        <documentation>
+                          This is attribute id that is used to fill the subject name id of the attribute query.
+                        </documentation>
+                    </annotation>
+                </attribute>
+                <attribute name="baeEntityId" type="string" use="required">
+                    <annotation>
+                        <documentation>
+                          This is the Entity Id of the BAE Service.
+                        </documentation>
+                    </annotation>
+                </attribute>
+                <attribute name="myEntityId" type="string" use="required">
+                    <annotation>
+                        <documentation>
+                          This is my Entity Id for performing queries. 
+                        </documentation>
+                    </annotation>
+                </attribute>
+                <attribute name="searchTimeLimit" type="positiveInteger">
+                    <annotation>
+                        <documentation>
+                          This is my Entity Id for performing queries. 
+                        </documentation>
+                    </annotation>
+                </attribute>
+            </extension>
+        </complexContent>
+    </complexType>
+     
 
 
 </schema>

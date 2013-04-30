@@ -16,6 +16,8 @@ public class GFIPMNamespaceHandler extends BaseSpringNamespaceHandler {
         // Register GFIPM Data Connector Parsers.
         registerBeanDefinitionParser(GfipmTestDataConnectorBeanDefinitionParser.TYPE_NAME,
                 new GfipmTestDataConnectorBeanDefinitionParser());
+        registerBeanDefinitionParser(GfipmBAEDataConnectorBeanDefinitionParser.TYPE_NAME,
+                new GfipmBAEDataConnectorBeanDefinitionParser());
     }
 
 }
