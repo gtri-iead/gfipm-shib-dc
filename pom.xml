@@ -4,19 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>GTRI.IEAD.GFIPM</groupId>
     <artifactId>gfipm-bae-dataconnector</artifactId>
-    <version>3.0.1</version>
+    <version>0.1.1</version>
     <packaging>jar</packaging>
 
     <name>gfipm-bae</name>
   
-<!-- 
-    <parent>
-       <groupId>net.shibboleth</groupId>
-       <artifactId>parent-v2</artifactId>
-       <version>TRUNK-SNAPSHOT</version>
-    </parent>
--->
- 
     <repositories>
         <repository>
             <id>shib-release</id>
@@ -32,6 +24,20 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+          <snapshots>
+             <enabled>false</enabled>
+          </snapshots>
+          <id>central</id>
+          <name>all</name>
+          <url>https://iead.ittl.gtri.org/artifactory/all</url>
+       </repository>
+       <repository>
+          <snapshots />
+          <id>snapshots</id>
+          <name>all</name>
+          <url>https://iead.ittl.gtri.org/artifactory/all</url>
+       </repository>
     </repositories>
 
     <dependencies>
@@ -51,6 +57,12 @@
             <version>2.4</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.gtri.gfipm.bae</groupId>
+            <artifactId>gfipm-bae-parent</artifactId>
+            <version>0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
         
         <!-- Runtime dependencies -->
 
@@ -63,6 +75,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
                 <configuration>
                     <source>1.5</source>
                     <target>1.5</target>
@@ -96,6 +109,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9</version>
                 <configuration>
                     <links>
                         <link>http://java.sun.com/j2se/1.5.0/docs/api/</link>
