@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+    This file is an EXAMPLE configuration file for the GFIPM BAE Data Connector.
+-->
+<resolver:AttributeResolver xmlns:resolver="urn:mace:shibboleth:2.0:resolver" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                            xmlns:pc="urn:mace:shibboleth:2.0:resolver:pc" xmlns:ad="urn:mace:shibboleth:2.0:resolver:ad" 
+                            xmlns:dc="urn:mace:shibboleth:2.0:resolver:dc" xmlns:enc="urn:mace:shibboleth:2.0:attribute:encoder" 
+                            xmlns:sec="urn:mace:shibboleth:2.0:security" xmlns:gfipm-bae="urn:global:gfipm:1.1:bae-resolver"
+                            xsi:schemaLocation="urn:mace:shibboleth:2.0:resolver classpath:/schema/shibboleth-2.0-attribute-resolver.xsd
+                                               urn:mace:shibboleth:2.0:resolver:pc classpath:/schema/shibboleth-2.0-attribute-resolver-pc.xsd
+                                               urn:mace:shibboleth:2.0:resolver:ad classpath:/schema/shibboleth-2.0-attribute-resolver-ad.xsd
+                                               urn:mace:shibboleth:2.0:resolver:dc classpath:/schema/shibboleth-2.0-attribute-resolver-dc.xsd
+                                               urn:mace:shibboleth:2.0:attribute:encoder classpath:/schema/shibboleth-2.0-attribute-encoder.xsd
+                                               urn:mace:shibboleth:2.0:security classpath:/schema/shibboleth-2.0-security.xsd
+                                               urn:global:gfipm:1.1:bae-resolver classpath:/schema/gfipm-1.1-resolver.xsd">
+
+    <resolver:AttributeDefinition id="CFR28" xsi:type="Simple" xmlns="urn:mace:shibboleth:2.0:resolver:ad"
+        sourceAttributeID="CFR28-Cert">
+        <resolver:Dependency ref="myBAE" />
+
+        <resolver:AttributeEncoder xsi:type="SAML2String" xmlns="urn:mace:shibboleth:2.0:attribute:encoder"
+            name="gfipm:2.0:user:28CFRCertificationIndicator" friendlyName="CFR28" />
+    </resolver:AttributeDefinition>
+
+    <!-- ========================================== -->
+    <!--      Data Connectors                       -->
+    <!-- ========================================== -->
+
+    <resolver:DataConnector id="myBAE" xsi:type="gfipm-bae:BAE"
+                            xmlns="urn:global:gfipm:1.1:bae-resolver"
+                            baeURL="https://www.iir.com/28CFR-BAE/BAEService.svc"
+                            subjectId="EmailAddress"
+                            baeEntityId="URN:TEST:IDMANAGEMENT.GOV:ICAM:BAE:V2:BJA28CFR"
+                            myEntityId="URN:TEST:IDMANAGEMENT.GOV:ICAM:BAE:V2:txdps-client">
+        <resolver:Dependency ref="EmailAddress" />
+
+
+        <gfipm-bae:TrustCredential xsi:type="X509Filesystem" xmlns="urn:mace:shibboleth:2.0:security" id="IIRCert">
+            <Certificate>/opt/shib-idp/credentials/iir.crt</Certificate>
+        </gfipm-bae:TrustCredential>
+        <gfipm-bae:AuthenticationCredential xsi:type="X509Filesystem" xmlns="urn:mace:shibboleth:2.0:security" id="MyBAECred">
+           <PrivateKey>/opt/shib-idp/credentials/txdps.key</PrivateKey>
+           <Certificate>/opt/shib-idp/credentials/txdps.crt</Certificate>
+        </gfipm-bae:AuthenticationCredential>
+
+
+        <gfipm-bae:Attribute QueryName="gfipm:2.0:user:28CFRCertificationIndicator"
+                             ReturnName="CFR28-Cert" />
+
+    </resolver:DataConnector>
+
+</resolver:AttributeResolver>

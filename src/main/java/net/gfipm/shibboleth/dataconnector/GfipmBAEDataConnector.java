@@ -129,6 +129,8 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
           }
         } catch (BAEServerException e) {
            log.error ("BAE Server Error: {}", e);
+        } catch (Exception e) {
+           log.error ("Query Failed: {}", e);
         }
 
         return attribute;

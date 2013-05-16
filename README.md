@@ -24,4 +24,34 @@ file are returned as attribute name/value pairs):
 
     </resolver:DataConnector>
 
+To activate the use of SHA256 for digital signatures you need to add the following 
+to the IdP's internal.xml: 
+
+    <bean id="shibboleth.idp.ext.OpensamlCustomCryptoConfig" class="edu.internet2.middleware.shibboleth.idp.ext.cryptoconfig.OpensamlCustomCryptoConfigBean" depends-on="shibboleth.OpensamlConfig" />
+
+
+To use the BAE Query you configure the BAE resolver like this:
+
+    <resolver:DataConnector id="myBAE" xsi:type="gfipm-bae:BAE"
+                            xmlns="urn:global:gfipm:1.1:bae-resolver"
+                            baeURL="serviceUrl"
+                            subjectId="ShibAttributeIdToBeSentToBAEServiceAsNameId"
+                            baeEntityId="serviceId"
+                            myEntityId="clientId">
+        <resolver:Dependency ref="DependencyForAttributeId" />
+
+
+        <gfipm-bae:TrustCredential xsi:type="X509Filesystem" xmlns="urn:mace:shibboleth:2.0:security" id="IIRCert">
+            <Certificate>/opt/shib-idp/credentials/bae-service.crt</Certificate>
+        </gfipm-bae:TrustCredential>
+        <gfipm-bae:AuthenticationCredential xsi:type="X509Filesystem" xmlns="urn:mace:shibboleth:2.0:security" id="MyBAECred">
+           <PrivateKey>/opt/shib-idp/credentials/your.key</PrivateKey>
+           <Certificate>/opt/shib-idp/credentials/your.crt</Certificate>
+        </gfipm-bae:AuthenticationCredential>
+
+
+        <gfipm-bae:Attribute QueryName="gfipm:2.0:user:attrName"
+                             ReturnName="ShibAttrName" />
+
+    </resolver:DataConnector>
 
