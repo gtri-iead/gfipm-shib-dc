@@ -43,6 +43,8 @@ import org.gtri.gfipm.bae.v2_0.BackendAttribute;
 import org.gtri.gfipm.bae.v2_0.BackendAttributeValue;
 import org.gtri.gfipm.bae.v2_0.BAEServerException;
 import org.gtri.gfipm.bae.v2_0.BAEServerCreationException;
+import org.gtri.gfipm.bae.v2_0.WebServiceRequestOptions;
+import org.gtri.gfipm.bae.v2_0.WebServiceRequestOptionsFactory;
 
 import java.io.File;
 import java.io.FileReader;
@@ -196,9 +198,12 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
     public void initialize() {
        serverInfo = BAEServerInfoFactory.getInstance().createBAEServerInfo(baeURL, baeEntityId, serverCerts); 
        clientInfo = BAEClientInfoFactory.getInstance().createBAEClientInfo(myEntityId, myCert, myKey);
+       Map<String,String> mapOptions;
+       mapOptions.put (WebServiceRequestOptions.CLIENT_CERT_AUTH, "false");
+       WebServiceRequestOptions wsRequestOptions = WebServiceRequestOptionsFactory.getInstance().createWebServiceRequestOptions(mapOptions);
 
        try {
-          baeServer = BAEServerFactory.getInstance().createBAEServer(serverInfo, clientInfo);
+          baeServer = BAEServerFactory.getInstance().createBAEServer(serverInfo, clientInfo, wsRequestOptions);
        } catch (BAEServerCreationException e) {
          log.error ("BAE Server Creation Error: {}", e);
        }
