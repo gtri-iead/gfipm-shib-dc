@@ -198,7 +198,7 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
     public void initialize() {
        serverInfo = BAEServerInfoFactory.getInstance().createBAEServerInfo(baeURL, baeEntityId, serverCerts); 
        clientInfo = BAEClientInfoFactory.getInstance().createBAEClientInfo(myEntityId, myCert, myKey);
-       Map<String,String> mapOptions;
+       Map<String,String> mapOptions = new HashMap<String,String> ();
        mapOptions.put (WebServiceRequestOptions.CLIENT_CERT_AUTH, "false");
        WebServiceRequestOptions wsRequestOptions = WebServiceRequestOptionsFactory.getInstance().createWebServiceRequestOptions(mapOptions);
 

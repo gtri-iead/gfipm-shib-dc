@@ -59,7 +59,7 @@
         </dependency>
         <dependency>
             <groupId>org.gtri.gfipm.bae</groupId>
-            <artifactId>gfipm-bae-parent</artifactId>
+            <artifactId>bae-api</artifactId>
             <version>0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
