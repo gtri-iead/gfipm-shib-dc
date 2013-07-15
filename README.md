@@ -24,12 +24,6 @@ file are returned as attribute name/value pairs):
 
     </resolver:DataConnector>
 
-To activate the use of SHA256 for digital signatures you need to add the following 
-to the IdP's internal.xml: 
-
-    <bean id="shibboleth.idp.ext.OpensamlCustomCryptoConfig" class="edu.internet2.middleware.shibboleth.idp.ext.cryptoconfig.OpensamlCustomCryptoConfigBean" depends-on="shibboleth.OpensamlConfig" />
-
-
 To use the BAE Query you configure the BAE resolver like this:
 
     <resolver:DataConnector id="myBAE" xsi:type="gfipm-bae:BAE"
