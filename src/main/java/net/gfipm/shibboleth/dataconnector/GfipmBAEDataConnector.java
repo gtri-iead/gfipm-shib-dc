@@ -33,6 +33,9 @@ import java.security.cert.X509Certificate;
 
 import org.gtri.gfipm.bae.v2_0.SubjectIdentifier;
 import org.gtri.gfipm.bae.v2_0.EmailSubjectIdentifier;
+import org.gtri.gfipm.bae.v2_0.FASCNSubjectIdentifier;
+import org.gtri.gfipm.bae.v2_0.PIVUUIDSubjectIdentifier;
+import org.gtri.gfipm.bae.v2_0.InvalidFASCNException;
 import org.gtri.gfipm.bae.v2_0.BAEServerInfo;
 import org.gtri.gfipm.bae.v2_0.BAEClientInfo;
 import org.gtri.gfipm.bae.v2_0.BAEServer;
@@ -94,6 +97,30 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
         searchTimeLimit = time;
     }
 
+    /** 
+     * Method for generating a subject identifier.  "Intelligently" determines type
+     */
+    private SubjectIdentifier GetSubjectIdentifier (String PrincipalName) {
+
+       // Test if it is a PIV-I Style UUID       
+       if (PrincipalName.indexOf ("uuid") != -1) {
+          log.debug("Principal: " + PrincipalName + " resolved as PIV-I UUID type.");
+          return new PIVUUIDSubjectIdentifier(PrincipalName);
+       } 
+
+       // Test if it is a FASCN
+       try {
+          FASCNSubjectIdentifier fascnId = new FASCNSubjectIdentifier(PrincipalName);
+          log.debug("Principal: " + PrincipalName + " resolved as FASCN type.");
+          return fascnId;
+       } catch (InvalidFASCNException e) {
+         // Not a valid FASCN so we default to e-mail address.
+         log.debug("Principal: " + PrincipalName + " defaulting to E-mail type.");
+         return new EmailSubjectIdentifier (PrincipalName);
+       }
+          
+    }
+
     /** {@inheritDoc} */
     public Map<String, BaseAttribute> resolve(ShibbolethResolutionContext resolutionContext)
             throws AttributeResolutionException {
@@ -110,14 +137,17 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
         if (sourceIdValues.size() > 1) {
             log.warn("Source attribute " + subjectId + " for connector " + getId() +" has more than one value.");
         }
+
         String strPrincipal = sourceIdValues.iterator().next().toString();
 
-        log.debug ("Querying for email: " + strPrincipal );
+        log.debug ("Querying for Id : " + strPrincipal );
 
 
-        SubjectIdentifier identifier = new EmailSubjectIdentifier (strPrincipal);
 
         try {
+//           SubjectIdentifier identifier = new FASCNSubjectIdentifier (strPrincipal);
+           SubjectIdentifier identifier = GetSubjectIdentifier (strPrincipal);
+
            Collection<BackendAttribute> attributes = baeServer.attributeQuery(identifier);
 
            // TBD Integrate BAE Interface

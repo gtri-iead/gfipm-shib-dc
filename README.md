@@ -49,3 +49,8 @@ To use the BAE Query you configure the BAE resolver like this:
 
     </resolver:DataConnector>
 
+
+To activate the use of SHA256 for digital signatures (if not enabled via another extension) you may add the following to the IdP's internal.xml:
+
+    <bean id="OpensamlCustomCryptoConfig" class="net.gfipm.shibboleth.cryptoconfig.OpensamlCustomCryptoConfigBean" depends-on="shibboleth.OpensamlConfig" />
+

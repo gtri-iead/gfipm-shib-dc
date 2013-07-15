@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>GTRI.IEAD.GFIPM</groupId>
     <artifactId>gfipm-bae-dataconnector</artifactId>
-    <version>0.1.1</version>
+    <version>0.5.1</version>
     <packaging>jar</packaging>
 
     <name>gfipm-bae</name>
@@ -24,20 +24,6 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <repository>
-          <snapshots>
-             <enabled>false</enabled>
-          </snapshots>
-          <id>central</id>
-          <name>all</name>
-          <url>https://iead.ittl.gtri.org/artifactory/all</url>
-       </repository>
-       <repository>
-          <snapshots />
-          <id>snapshots</id>
-          <name>all</name>
-          <url>https://iead.ittl.gtri.org/artifactory/all</url>
-       </repository>
     </repositories>
 
     <dependencies>
@@ -61,8 +47,16 @@
             <groupId>org.gtri.gfipm.bae</groupId>
             <artifactId>bae-api</artifactId>
             <version>0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+<!--
+        <dependency>
+            <groupId>org.gtri.gfipm.bae</groupId>
+            <artifactId>gfipm-bae-parent</artifactId>
+            <version>0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+-->
         
         <!-- Runtime dependencies -->
 
@@ -103,7 +97,7 @@
             </plugin>
         </plugins>
     </build>
-
+<!--
     <reporting>
         <plugins>
             <plugin>
@@ -124,7 +118,7 @@
             </plugin>
         </plugins>
     </reporting>
-    
+-->   
     <!-- 
         You can leave the following information commented out fill it in with information 
         appropriate for your extension.
