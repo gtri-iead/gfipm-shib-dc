@@ -105,7 +105,9 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
        // Test if it is a PIV-I Style UUID       
        if (PrincipalName.indexOf ("uuid") != -1) {
           log.debug("Principal: " + PrincipalName + " resolved as PIV-I UUID type.");
-          return new PIVUUIDSubjectIdentifier(PrincipalName);
+          String trimmedUUID = PrincipalName.substring(9); // Remove "urn:uuid:" from the beginning.
+          log.debug("Trimmed UUID: " + trimmedUUID);
+          return new PIVUUIDSubjectIdentifier(trimmedUUID);
        } 
 
        // Test if it is a FASCN
