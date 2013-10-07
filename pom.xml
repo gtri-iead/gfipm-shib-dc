@@ -8,7 +8,13 @@
     <packaging>jar</packaging>
 
     <name>gfipm-bae</name>
-  
+ 
+    <parent>
+        <groupId>org.gtri</groupId>
+        <artifactId>super-pom</artifactId>
+        <version>2.0.0</version>
+    </parent>
+ 
     <repositories>
         <repository>
             <id>shib-release</id>
@@ -24,6 +30,21 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>gtri-external</id>
+            <url>https://maven.gtri.gatech.edu/repos/external</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>gtri-external-snapshots</id>
+            <url>https://maven.gtri.gatech.edu/repos/external-snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+
     </repositories>
 
     <dependencies>
