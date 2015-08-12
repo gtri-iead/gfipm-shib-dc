@@ -9,78 +9,155 @@
 
 package net.gfipm.shibboleth.dataconnector;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
-import edu.internet2.middleware.shibboleth.common.attribute.BaseAttribute;
-import edu.internet2.middleware.shibboleth.common.attribute.provider.BasicAttribute;
-import edu.internet2.middleware.shibboleth.common.attribute.resolver.AttributeResolutionException;
-import edu.internet2.middleware.shibboleth.common.attribute.resolver.provider.ShibbolethResolutionContext;
-import edu.internet2.middleware.shibboleth.common.attribute.resolver.provider.dataConnector.BaseDataConnector;
+import net.shibboleth.idp.attribute.IdPAttribute;
+import net.shibboleth.idp.attribute.IdPAttributeValue;
+import net.shibboleth.idp.attribute.StringAttributeValue;
+import net.shibboleth.idp.attribute.resolver.AbstractDataConnector;
+import net.shibboleth.idp.attribute.resolver.ResolutionException;
+import net.shibboleth.idp.attribute.resolver.context.AttributeResolutionContext;
+import net.shibboleth.idp.attribute.resolver.context.AttributeResolverWorkContext;
+import net.shibboleth.idp.attribute.resolver.PluginDependencySupport;
+
+import net.shibboleth.utilities.java.support.annotation.constraint.NonnullAfterInit;
+import net.shibboleth.utilities.java.support.annotation.constraint.NullableElements;
+import net.shibboleth.utilities.java.support.component.ComponentInitializationException;
+import net.shibboleth.utilities.java.support.component.ComponentSupport;
+import net.shibboleth.utilities.java.support.primitive.StringSupport;
+import net.shibboleth.utilities.java.support.logic.Constraint;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
+
+
 /**
  * Data connector implementation that returns staticly defined attributes.
  */
-public class GfipmTestDataConnector extends BaseDataConnector {
+public class GfipmTestDataConnector extends AbstractDataConnector {
 
     /** Log4j logger. */
-    private static Logger log = Logger.getLogger(GfipmTestDataConnector.class.getName());
+    @NonnullAfterInit private final Logger log =  LoggerFactory.getLogger(GfipmTestDataConnector.class);
 
     /** Source Data. */
 //    private Map<String, BaseAttribute> attributes;
 
     /** Path to User Attribute Files */
-    private String pathToUserAttributeFiles;
+    @NonnullAfterInit private String pathToUserAttributeFiles;
 
     /** Shibboleth Attribute Definition Id to get the User Id from as opposed to just using the principal id */
-    private String uidAttributeId;
+    @NonnullAfterInit private String uidAttributeId;
 
     /**
      * Constructor.
      * 
      * @param fileAttributes attributes that configure this data connector
      */
-    public GfipmTestDataConnector(String pathUserMetadata, String uidAttrName) {
-        pathToUserAttributeFiles = pathUserMetadata;
-        uidAttributeId           = uidAttrName;
+    public GfipmTestDataConnector() {
+       // String pathUserMetadata, String uidAttrName) {
+       // pathToUserAttributeFiles = pathUserMetadata;
+       // uidAttributeId           = uidAttrName;
+    }
+
+    /**
+      * Set the attribute to use as the key when identifying an attribute file. 
+      * 
+      * @param pathToAttributeFiles what to set.
+      */
+    public void setUidAttribute(@Nullable String uidAttribute) {
+        ComponentSupport.ifInitializedThrowUnmodifiabledComponentException(this);
+        uidAttributeId = StringSupport.trimOrNull(uidAttribute);
+    }
+
+    /**
+      * Get the uid attribute.
+      * 
+      * @return the uid attribute name. 
+      */
+    @NonnullAfterInit public String getUidAttribute() {
+        return uidAttributeId;
+    }
+
+
+    /**
+      * Set the path of the direcotry that contains an attribute file. 
+      * 
+      * @param pathToAttributeFiles what to set.
+      */
+    public void setPathToAttributeFiles(@Nullable String pathToAttributeFiles) {
+        ComponentSupport.ifInitializedThrowUnmodifiabledComponentException(this);
+        pathToUserAttributeFiles = StringSupport.trimOrNull(pathToAttributeFiles);
+    }
+
+    /**
+      * Get the path of the directory that contains an attribute file. 
+      * 
+      * @return the Path to the Attributes File. 
+      */
+    @NonnullAfterInit public String getPathToAttributeFiles() {
+        return pathToUserAttributeFiles;
+    }
+
+    private String getPrincipal (
+            @Nonnull final AttributeResolutionContext resolutionContext,
+            @Nonnull final AttributeResolverWorkContext workContext) {
+
+        final Map<String,List<IdPAttributeValue<?>>> dependencyAttributes =
+                PluginDependencySupport.getAllAttributeValues(workContext, getDependencies());
+
+
+        for (final Entry<String,List<IdPAttributeValue<?>>> dependencyAttribute : dependencyAttributes.entrySet()) {
+            log.debug("Adding dependent attribute '{}' with the following values to the connector context: {}",
+                      dependencyAttribute.getKey(), dependencyAttribute.getValue());
+              if ( dependencyAttribute.getKey() == uidAttributeId ) {
+                 String principalObjString = dependencyAttribute.getValue().toString();
+                 int start = principalObjString.indexOf ('=');
+                 int end   = principalObjString.indexOf ('}');
+                 return principalObjString.substring (start + 1, end);
+              }
+        }
+
+        return null;
     }
 
     /** {@inheritDoc} */
-    public Map<String, BaseAttribute> resolve(ShibbolethResolutionContext resolutionContext)
-            throws AttributeResolutionException {
-        log.debug("Resolving connector: (" + getId() + ") for principal: ("
-                + resolutionContext.getAttributeRequestContext().getPrincipalName() + ")");
+    @Override
+    @Nonnull protected Map<String, IdPAttribute> doDataConnectorResolve(
+            @Nonnull final AttributeResolutionContext resolutionContext,
+            @Nonnull final AttributeResolverWorkContext workContext) throws ResolutionException {
 
-        Map<String, BaseAttribute> attribute = new HashMap<String, BaseAttribute>();
-        //String strPrincipal    = resolutionContext.getAttributeRequestContext().getPrincipalName();
+        Constraint.isNotNull(resolutionContext, "AttributeResolutionContext cannot be null");
+        Constraint.isNotNull(workContext, "AttributeResolverWorkContext cannot be null");
 
-        Collection<Object> sourceIdValues = getValuesFromAllDependencies(resolutionContext, uidAttributeId);
-        if (sourceIdValues == null || sourceIdValues.isEmpty()) {
-            log.debug("Source attribute " + uidAttributeId + " for connector " + getId() +" provide no values");
-            return Collections.EMPTY_MAP;
-        }
-
-        if (sourceIdValues.size() > 1) {
-            log.warn("Source attribute " + uidAttributeId + " for connector " + getId() +" has more than one value.");
-        }
-        String strPrincipal = sourceIdValues.iterator().next().toString();
+        String strPrincipal = getPrincipal (resolutionContext, workContext);
 
         //We want to cleanup principals that are DNs
-        if ( strPrincipal.startsWith ("/") )
+        if ( null == strPrincipal )
         {
+           log.error ("Failed to identify the principal");
+           throw new ResolutionException("Unique principal not identified.");
+        } else if ( strPrincipal.startsWith ("/") ) {
            int start = strPrincipal.indexOf ('=');
            int end   = strPrincipal.indexOf ('/', start);
            strPrincipal = strPrincipal.substring (start + 1, end); // ;/CN=LinuxrefUser1/ST=GA/C=US/O=Georgia Tech.xml
         }
-       
+
         // Now as a safety precaution in case the above fails to make a username safe
         strPrincipal.replace ('/', '-');
         strPrincipal.replace ('\\', '-');
@@ -90,57 +167,55 @@ public class GfipmTestDataConnector extends BaseDataConnector {
 
         log.debug ("Trying to load attribute file: " + strFileName + "\n");
 
-	try
-	{
-	   File inputFile = new File(strFileName);
-	   BufferedReader in = new BufferedReader(new FileReader(inputFile));
-	   String strNextLine = "";
+        Map<String, IdPAttribute> outputAttr = new HashMap<String, IdPAttribute>(20);
 
-       while ( (strNextLine = in.readLine()) != null )
-	   {
-           String[] tokens = strNextLine.split(" :: ");
-           
-           if (tokens.length != 2)
-           {
+        try {
+           File inputFile = new File(strFileName);
+           BufferedReader in = new BufferedReader(new FileReader(inputFile));
+           String strNextLine = "";
+
+           while ( (strNextLine = in.readLine()) != null ) {
+             String[] tokens = strNextLine.split(" :: ");
+
+             if (tokens.length != 2) {
                log.debug ("Delimiter error when parsing attribute line: " + strNextLine);
-           }
-           else
-           {
+             }
+             else {
                String strAttrName  = tokens[0];
                String strAttrValue = tokens[1];
                log.debug ("Attr  = " + strAttrName + "\nValue = " + strAttrValue + "\n");
-//               System.out.println ("Attr  = " + strAttrName + "\nValue = " + strAttrValue + "\n");
-               BasicAttribute<String> baXmlAttr = new BasicAttribute<String>();
-               baXmlAttr.getValues().add(strAttrValue);
-               
-               attribute.put (strAttrName, baXmlAttr);
+
+               List<IdPAttributeValue<String>> outputValue = Lists.newArrayListWithExpectedSize(1);
+               outputValue.add(new StringAttributeValue(strAttrValue));
+
+               final IdPAttribute tempAttr = new IdPAttribute(strAttrName);
+               tempAttr.setValues(outputValue);
+
+               outputAttr.put (tempAttr.getId(), tempAttr);
+             }
            }
-	   }
-	}
-	catch (java.io.FileNotFoundException name)
-	{
-	   throw new AttributeResolutionException("File Not Found: " + strFileName);
-	}
-	catch (java.io.IOException e) 
-        {
-           throw new AttributeResolutionException("File Parsing Error, while reading " + strFileName);
-	}
+        }
+        catch (java.io.FileNotFoundException name) {
+           throw new ResolutionException("File Not Found: " + strFileName);
+        } catch (java.io.IOException e) {
+           throw new ResolutionException("File Parsing Error, while reading " + strFileName);
+        }
 
-//        log.debug ("GFIPMAssertion-1.0 (before encoding) = " + strXmlAttribute);
-
-//        BasicAttribute<byte[]> baXmlAttr = new BasicAttribute<byte[]>();
-
-//        baXmlAttr.getValues().add(strXmlAttribute.getBytes());
-
-//	Map<String, BaseAttribute> attribute = new HashMap<String, BaseAttribute>();
-
-//        attribute.put ("GFIPMAssertion-1.0", baXmlAttr);        
-
-        return attribute;
+        return outputAttr;
     }
 
     /** {@inheritDoc} */
-    public void validate() throws AttributeResolutionException {
-        // Do nothing
+    @Override
+    protected void doInitialize() throws ComponentInitializationException {
+        super.doInitialize();
+
+        if (null == uidAttributeId) {
+            throw new ComponentInitializationException(getLogPrefix() + " No uid attribute source set up.");
+        }
+        if (null == pathToUserAttributeFiles) {
+            throw new ComponentInitializationException(getLogPrefix() + " No path to attribute files set up.");
+        }
     }
+
 }
+

@@ -3,11 +3,11 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
     <groupId>GTRI.IEAD.GFIPM</groupId>
-    <artifactId>gfipm-bae-dataconnector</artifactId>
-    <version>0.5.1</version>
+    <artifactId>shib3-bae-dc</artifactId>
+    <version>0.6.1</version>
     <packaging>jar</packaging>
 
-    <name>gfipm-bae</name>
+    <name>shib3-bae-dc</name>
  
     <parent>
         <groupId>org.gtri</groupId>
@@ -52,11 +52,38 @@
 
 
         <!-- Provided dependencies -->
-        <dependency>
-            <groupId>edu.internet2.middleware</groupId>
-            <artifactId>shibboleth-identityprovider</artifactId>
-            <version>2.4.0</version>
+       <dependency>
+            <groupId>net.shibboleth.idp</groupId>
+            <artifactId>idp-attribute-api</artifactId>
+            <version>3.1.1</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.shibboleth.idp</groupId>
+            <artifactId>idp-attribute-resolver-api</artifactId>
+            <version>3.1.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.shibboleth.idp</groupId>
+            <artifactId>idp-attribute-resolver-spring</artifactId>
+            <version>3.1.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.shibboleth.ext</groupId>
+            <artifactId>spring-extensions</artifactId>
+            <version>5.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.shibboleth.utilities</groupId>
+            <artifactId>java-support</artifactId>
+            <version>7.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.1.1</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>

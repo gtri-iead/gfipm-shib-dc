@@ -1,7 +1,8 @@
 
 package net.gfipm.shibboleth.config;
 
-import edu.internet2.middleware.shibboleth.common.config.BaseSpringNamespaceHandler;
+import net.shibboleth.ext.spring.util.BaseSpringNamespaceHandler;
+
 
 /**
  * Spring namespace handler for the GFIPM BAE data connector namespace.
@@ -9,15 +10,13 @@ import edu.internet2.middleware.shibboleth.common.config.BaseSpringNamespaceHand
 public class GFIPMNamespaceHandler extends BaseSpringNamespaceHandler {
 
     /** Namespace for this handler. */
-    public static final String NAMESPACE = "urn:global:gfipm:1.1:bae-resolver";
+    public static final String NAMESPACE = "urn:global:gfipm:1.3:bae-resolver";
     
     /** {@inheritDoc} */
     public void init() {
         // Register GFIPM Data Connector Parsers.
-        registerBeanDefinitionParser(GfipmTestDataConnectorBeanDefinitionParser.TYPE_NAME,
-                new GfipmTestDataConnectorBeanDefinitionParser());
-        registerBeanDefinitionParser(GfipmBAEDataConnectorBeanDefinitionParser.TYPE_NAME,
-                new GfipmBAEDataConnectorBeanDefinitionParser());
+        registerBeanDefinitionParser(GfipmTestDataConnectorParser.TYPE_NAME, new GfipmTestDataConnectorParser());
+        registerBeanDefinitionParser(GfipmBAEDataConnectorParser.TYPE_NAME,  new GfipmBAEDataConnectorParser());
     }
 
 }

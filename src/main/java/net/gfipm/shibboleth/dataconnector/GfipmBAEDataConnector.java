@@ -19,15 +19,28 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.internet2.middleware.shibboleth.common.attribute.BaseAttribute;
-import edu.internet2.middleware.shibboleth.common.attribute.provider.BasicAttribute;
-import edu.internet2.middleware.shibboleth.common.attribute.resolver.AttributeResolutionException;
-import edu.internet2.middleware.shibboleth.common.attribute.resolver.provider.ShibbolethResolutionContext;
-import edu.internet2.middleware.shibboleth.common.attribute.resolver.provider.dataConnector.BaseDataConnector;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
-import org.opensaml.xml.security.x509.X509Credential;
-import org.opensaml.xml.security.SecurityHelper;
-import org.opensaml.xml.security.x509.X509Util;
+import net.shibboleth.idp.attribute.IdPAttribute;
+import net.shibboleth.idp.attribute.IdPAttributeValue;
+import net.shibboleth.idp.attribute.StringAttributeValue;
+import net.shibboleth.idp.attribute.resolver.AbstractDataConnector;
+import net.shibboleth.idp.attribute.resolver.ResolutionException;
+import net.shibboleth.idp.attribute.resolver.context.AttributeResolutionContext;
+import net.shibboleth.idp.attribute.resolver.context.AttributeResolverWorkContext;
+import net.shibboleth.idp.attribute.resolver.PluginDependencySupport;
+
+import net.shibboleth.utilities.java.support.annotation.constraint.NonnullAfterInit;
+import net.shibboleth.utilities.java.support.annotation.constraint.NullableElements;
+import net.shibboleth.utilities.java.support.component.ComponentInitializationException;
+import net.shibboleth.utilities.java.support.component.ComponentSupport;
+import net.shibboleth.utilities.java.support.primitive.StringSupport;
+import net.shibboleth.utilities.java.support.logic.Constraint;
+
+
+import org.opensaml.security.x509.X509Credential;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
@@ -49,18 +62,16 @@ import org.gtri.gfipm.bae.v2_0.BAEServerCreationException;
 import org.gtri.gfipm.bae.v2_0.WebServiceRequestOptions;
 import org.gtri.gfipm.bae.v2_0.WebServiceRequestOptionsFactory;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.BufferedReader;
+import com.google.common.collect.Lists;
 
 
 /**
  * Data connector implementation that returns staticly defined attributes.
  */
-public class GfipmBAEDataConnector extends BaseDataConnector {
+public class GfipmBAEDataConnector extends AbstractDataConnector {
 
     /** Log4j logger. */
-    private static Logger log = LoggerFactory.getLogger(GfipmBAEDataConnector.class);
+    @NonnullAfterInit private final Logger log =  LoggerFactory.getLogger(GfipmBAEDataConnector.class);
 
     private String baeURL;
     private String subjectId;
@@ -86,16 +97,49 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
 
     /**
      * Constructor.
-     * 
-     * @param fileAttributes attributes that configure this data connector
      */
-    public GfipmBAEDataConnector(String url, String id, String baeId, String myId, int time) {
-        baeURL = url;
-        subjectId = id;
-        baeEntityId = baeId;
-        myEntityId  = myId;
-        searchTimeLimit = time;
+    public GfipmBAEDataConnector() {
     }
+
+    /**
+     * Set and Get Methods used by initialization
+     */
+    public void setSearchTimeLimit(@Nullable int timeout) {
+        ComponentSupport.ifInitializedThrowUnmodifiabledComponentException(this);
+        searchTimeLimit = timeout;
+    }
+    @NonnullAfterInit public int getSearchTimeLimit() {
+        return searchTimeLimit;
+    }
+    public void setBaeUrl(@Nullable String url) {
+        ComponentSupport.ifInitializedThrowUnmodifiabledComponentException(this);
+        baeURL = StringSupport.trimOrNull(url);
+    }
+    @NonnullAfterInit public String getBaeUrl() {
+        return baeURL;
+    }
+    public void setMyEntityId(@Nullable String id) {
+        ComponentSupport.ifInitializedThrowUnmodifiabledComponentException(this);
+        myEntityId = StringSupport.trimOrNull(id);
+    }
+    @NonnullAfterInit public String getMyEntityId() {
+        return myEntityId;
+    }
+    public void setBaeEntityId(@Nullable String id) {
+        ComponentSupport.ifInitializedThrowUnmodifiabledComponentException(this);
+        baeEntityId = StringSupport.trimOrNull(id);
+    }
+    @NonnullAfterInit public String getBaeEntityId() {
+        return baeEntityId;
+    }
+    public void setSubjectId(@Nullable String id) {
+        ComponentSupport.ifInitializedThrowUnmodifiabledComponentException(this);
+        subjectId = StringSupport.trimOrNull(id);
+    }
+    @NonnullAfterInit public String getSubjectId() {
+        return subjectId;
+    }
+
 
     /** 
      * Method for generating a subject identifier.  "Intelligently" determines type
@@ -124,23 +168,32 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
     }
 
     /** {@inheritDoc} */
-    public Map<String, BaseAttribute> resolve(ShibbolethResolutionContext resolutionContext)
-            throws AttributeResolutionException {
-        log.debug("Resolving connector " + getId() + " - Principal - " + resolutionContext.getAttributeRequestContext().getPrincipalName());
+    /** {@inheritDoc} */
+    @Override
+    @Nonnull protected Map<String, IdPAttribute> doDataConnectorResolve(
+            @Nonnull final AttributeResolutionContext resolutionContext,
+            @Nonnull final AttributeResolverWorkContext workContext) throws ResolutionException {
 
-        Map<String, BaseAttribute> attribute = new HashMap<String, BaseAttribute>();
+        log.debug("Resolving BAE Data Connector.");
 
-        Collection<Object> sourceIdValues = getValuesFromAllDependencies(resolutionContext, subjectId);
-        if (sourceIdValues == null || sourceIdValues.isEmpty()) {
-            log.debug("Source attribute " + subjectId + " for connector " + getId() +" provide no values");
+        Map<String, IdPAttribute> attribute = new HashMap<String, IdPAttribute>();
+
+        
+        final Map<String,List<IdPAttributeValue<?>>> dependencyAttributes = PluginDependencySupport.getAllAttributeValues (workContext, getDependencies());
+        if (dependencyAttributes == null || dependencyAttributes.isEmpty()) {
+            log.debug("Source attribute " + subjectId + " for connector " + getId() +" provided no values, cannot resolve.");
             return Collections.EMPTY_MAP;
         }
 
-        if (sourceIdValues.size() > 1) {
-            log.warn("Source attribute " + subjectId + " for connector " + getId() +" has more than one value.");
+        if (dependencyAttributes.size() > 1) {
+            log.warn("Source attribute " + subjectId + " for connector " + getId() +" has more than one value, just using the first.");
         }
 
-        String strPrincipal = sourceIdValues.iterator().next().toString();
+        for (final Map.Entry<String, List<IdPAttributeValue<?>>> entry : dependencyAttributes.entrySet()) {
+             log.debug("Adding dependency {} to context with {} value(s)", entry.getKey(), entry.getValue());
+        }
+
+        String strPrincipal = "blah - gotta look at trace output and figure out what goes here";
 
         log.debug ("Querying for Id : " + strPrincipal );
 
@@ -154,12 +207,21 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
 
            // TBD Integrate BAE Interface
            for (BackendAttribute a : attributes) {
-              String attribName  = baeAttrMap.get (a.getName());
-              String attribValue = a.getValue().getStringValue();
+              
+              // If we find this attribute in our map, then it is an attribute we process 
+              if ( baeAttrMap.get (a.getName()) != null ) 
+              {
+                String attribName  = baeAttrMap.get (a.getName());
+                String attribValue = a.getValue().getStringValue();
 
-              BasicAttribute<String> baXmlAttr = new BasicAttribute<String>();
-              baXmlAttr.getValues().add(attribValue);
-              attribute.put (attribName, baXmlAttr);
+                List<IdPAttributeValue<String>> baXmlAttr = Lists.newArrayListWithExpectedSize(1);
+                baXmlAttr.add(new StringAttributeValue(attribValue));
+
+                final IdPAttribute tempAttribute = new IdPAttribute(attribName);
+                tempAttribute.setValues(baXmlAttr);
+
+                attribute.put (tempAttribute.getId(), tempAttribute);
+              }
           }
         } catch (BAEServerException e) {
            log.error ("BAE Server Error: {}", e);
@@ -172,7 +234,7 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
 
 
     /**
-     * This returns the trust managers that will be used for all TLS and SSL connections to the ldap.
+     * This returns the trust managers that will be used for all TLS and SSL connections to the BAE Responder.
      * 
      * @return <code>TrustManager[]</code>
      */
@@ -196,7 +258,7 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
     }
 
     /**
-     * This returns the key managers that will be used for all TLS and SSL connections to the ldap.
+     * This returns the key managers that will be used for all TLS and SSL connections to the BAE Responder.
      * 
      * @return <code>KeyManager[]</code>
      */
@@ -227,7 +289,36 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
        }
     }
 
-    public void initialize() {
+    
+
+    @Override
+    protected void doInitialize() throws ComponentInitializationException {
+
+        if (null == baeURL) {
+            throw new ComponentInitializationException(getLogPrefix() + " No BAE Responder URL found.");
+        }
+        if (null == baeEntityId) {
+            throw new ComponentInitializationException(getLogPrefix() + " No BAE Responder Entity Id found.");
+        }
+        if (null == serverCerts) {
+            throw new ComponentInitializationException(getLogPrefix() + " No BAE Responder Trust Certificate(s) found.");
+        }
+        if (null == myEntityId) {
+            throw new ComponentInitializationException(getLogPrefix() + " No BAE Requester Entity Id found.");
+        }
+        if (null == myCert) {
+            throw new ComponentInitializationException(getLogPrefix() + " No BAE Requester Certificate found.");
+        }
+        if (null == myKey) {
+            throw new ComponentInitializationException(getLogPrefix() + " No BAE Requester Private Key found.");
+        }
+        if (null == baeAttrMap) {
+            throw new ComponentInitializationException(getLogPrefix() + " No Attribute Map found.");
+        }
+        if (null == subjectId) {
+            throw new ComponentInitializationException(getLogPrefix() + " No Subject Identifier attribute found.");
+        }
+
        serverInfo = BAEServerInfoFactory.getInstance().createBAEServerInfo(baeURL, baeEntityId, serverCerts); 
        clientInfo = BAEClientInfoFactory.getInstance().createBAEClientInfo(myEntityId, myCert, myKey);
        Map<String,String> mapOptions = new HashMap<String,String> ();
@@ -239,12 +330,7 @@ public class GfipmBAEDataConnector extends BaseDataConnector {
           baeServer = BAEServerFactory.getInstance().createBAEServer(serverInfo, clientInfo, wsRequestOptions);
        } catch (BAEServerCreationException e) {
          log.error ("BAE Server Creation Error: {}", e);
+         throw new ComponentInitializationException(getLogPrefix() + " BAE Server could not be initialized.");
        }
-    }
-
-
-    /** {@inheritDoc} */
-    public void validate() throws AttributeResolutionException {
-        // Do nothing
     }
 }
